@@ -2,11 +2,8 @@ package com.example.captureui;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.webkit.URLUtil;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,12 +12,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsIntent;
 
-import java.net.URL;
-
 
 public class MainActivity extends AppCompatActivity {
 
-    private static String[] optionsList = {"Chrome Custom Tabs", "Android WebView"};
+    private static final String[] optionsList = {"Chrome Custom Tabs", "Android WebView"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

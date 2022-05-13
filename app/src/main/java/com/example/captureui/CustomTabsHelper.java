@@ -89,7 +89,7 @@ class CustomTabsHelper {
             sPackageNameToUse = LOCAL_PACKAGE;
         }
         Log.d(TAG, "getPackageNameToUse: " + sPackageNameToUse);
-        return sPackageNameToUse;
+        return sPackageNameToUse == null ? STABLE_PACKAGE : sPackageNameToUse;
     }
 
     /**

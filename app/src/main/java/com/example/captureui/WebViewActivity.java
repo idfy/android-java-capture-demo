@@ -16,7 +16,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Message;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.GeolocationPermissions;
@@ -26,6 +26,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setLoadWithOverviewMode(true);
+        webSettings.setSupportMultipleWindows(true);
 
         //if SDK version is greater of 19 then activate hardware acceleration otherwise activate software acceleration
         if (Build.VERSION.SDK_INT >= 19) {
@@ -88,6 +90,47 @@ public class WebViewActivity extends AppCompatActivity {
 
         webView.setWebChromeClient(new WebChromeClient() {
             @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog,
+                                          boolean isUserGesture, Message resultMsg) {
+                WebView newWebView = new WebView(WebViewActivity.this);
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                newWebView.setLayoutParams(layoutParams);
+                WebSettings webSettings = newWebView.getSettings();
+                webSettings.setJavaScriptEnabled(true);
+                webSettings.setMediaPlaybackRequiresUserGesture(false);
+                webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+                webSettings.setPluginState(WebSettings.PluginState.ON);
+                webSettings.setDomStorageEnabled(true);
+                webSettings.setAllowContentAccess(true);
+                webSettings.setAllowFileAccess(true);
+                webSettings.setAllowFileAccessFromFileURLs(true);
+                webSettings.setAllowUniversalAccessFromFileURLs(true);
+                webSettings.setDatabaseEnabled(true);
+                webSettings.setLoadWithOverviewMode(true);
+                webSettings.setSupportMultipleWindows(true);
+                view.addView(newWebView);
+                WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newWebView);
+                resultMsg.sendToTarget();
+
+                newWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        view.loadUrl(url);
+                        return false;
+                    }
+                });
+
+                newWebView.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public void onCloseWindow(WebView view) {
+                        super.onCloseWindow(view);
+                        webView.removeView(newWebView);
+                    }
+                });
+                return true;
+            }
             // Grant permissions for cam
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
@@ -136,7 +179,6 @@ public class WebViewActivity extends AppCompatActivity {
             public void onPageStarted(WebView a_webview, String a_url, Bitmap favIcon) {
                 super.onPageStarted(a_webview, a_url, favIcon);
                 if (!a_url.contains(STAGING_BASE_URL) && !a_url.contains((PRODUCTION_BASE_URL))) {
-                    Log.d("onPageStarted", "URL: " + a_url);
                     finish();
                 }
             }
@@ -144,7 +186,6 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView a_webview, String a_url) {
                 super.onPageFinished(a_webview, a_url);
-                Log.d("onPageFinished", "URL: " + a_url);
             }
         });
     }
