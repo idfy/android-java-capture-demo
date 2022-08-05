@@ -62,7 +62,8 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setSupportMultipleWindows(true);
 
-        //if SDK version is greater of 19 then activate hardware acceleration otherwise activate software acceleration
+        // if SDK version is greater of 19 then activate hardware acceleration otherwise
+        // activate software acceleration
         if (Build.VERSION.SDK_INT >= 19) {
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         } else if (Build.VERSION.SDK_INT >= 16) {
@@ -92,9 +93,10 @@ public class WebViewActivity extends AppCompatActivity {
             @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog,
-                                          boolean isUserGesture, Message resultMsg) {
+                    boolean isUserGesture, Message resultMsg) {
                 WebView newWebView = new WebView(WebViewActivity.this);
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
                 newWebView.setLayoutParams(layoutParams);
                 WebSettings webSettings = newWebView.getSettings();
                 webSettings.setJavaScriptEnabled(true);
@@ -131,6 +133,7 @@ public class WebViewActivity extends AppCompatActivity {
                 });
                 return true;
             }
+
             // Grant permissions for cam
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
@@ -141,15 +144,21 @@ public class WebViewActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissions.Callback callback) {
+            public void onGeolocationPermissionsShowPrompt(final String origin,
+                    final GeolocationPermissions.Callback callback) {
                 if (ContextCompat.checkSelfPermission(WebViewActivity.this,
                         Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(WebViewActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(WebViewActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
                         new AlertDialog.Builder(WebViewActivity.this)
                                 .setMessage("Allow Location Access?")
-                                .setNeutralButton(R.string.alert_positive_button, (dialog, which) -> ActivityCompat.requestPermissions(WebViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 111)).show();
+                                .setNeutralButton(R.string.alert_positive_button,
+                                        (dialog, which) -> ActivityCompat.requestPermissions(WebViewActivity.this,
+                                                new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 111))
+                                .show();
                     } else {
-                        ActivityCompat.requestPermissions(WebViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 111);
+                        ActivityCompat.requestPermissions(WebViewActivity.this,
+                                new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 111);
                     }
                 } else {
                     callback.invoke(origin, true, true);
@@ -159,14 +168,12 @@ public class WebViewActivity extends AppCompatActivity {
             // For Lollipop 5.0+ Devices
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
-            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams)
-            {
+            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback,
+                    WebChromeClient.FileChooserParams fileChooserParams) {
                 Intent intent = fileChooserParams.createIntent();
-                try
-                {
+                try {
                     startActivity(intent);
-                } catch (ActivityNotFoundException e)
-                {
+                } catch (ActivityNotFoundException e) {
                     Toast.makeText(getApplicationContext(), "Cannot Open File Chooser", Toast.LENGTH_LONG).show();
                     return false;
                 }
@@ -203,5 +210,14 @@ public class WebViewActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webview.canGoBack()) {
+            webview.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }
