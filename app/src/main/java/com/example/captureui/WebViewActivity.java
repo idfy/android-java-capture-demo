@@ -38,6 +38,7 @@ public class WebViewActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "extra.url";
     public static final String STAGING_BASE_URL = "https://capture.kyc.idfystaging.com/";
     public static final String PRODUCTION_BASE_URL = "https://capture.kyc.idfy.com/";
+    private WebView webView;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     @SuppressLint("SetJavaScriptEnabled")
@@ -47,7 +48,7 @@ public class WebViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_web_view);
         Objects.requireNonNull(getSupportActionBar()).hide();
         String url = getIntent().getStringExtra(EXTRA_URL);
-        final WebView webView = findViewById(R.id.webview);
+        webView = findViewById(R.id.webview);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
@@ -214,8 +215,8 @@ public class WebViewActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (webview.canGoBack()) {
-            webview.goBack();
+        if (webView.canGoBack()) {
+            webView.goBack();
         } else {
             super.onBackPressed();
         }
