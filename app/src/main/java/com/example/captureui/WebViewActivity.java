@@ -172,6 +172,11 @@ public class WebViewActivity extends AppCompatActivity {
                 }
                 return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
             }
+
+            @Override
+            public Bitmap getDefaultVideoPoster() {
+                return Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+            }
         });
 
         webView.setWebViewClient(new WebViewClient() {
