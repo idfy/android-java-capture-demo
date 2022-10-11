@@ -9,7 +9,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -27,8 +26,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
-import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +36,32 @@ public class WebViewActivity extends AppCompatActivity {
     public static final String STAGING_BASE_URL = "https://capture.kyc.idfystaging.com/";
     public static final String PRODUCTION_BASE_URL = "https://capture.kyc.idfy.com/";
     private WebView webView;
+
+    /** File chooser attributes */
+    private final static int FILECHOOSER_RESULTCODE = 1;
+    private ValueCallback<Uri[]> mUploadMessage;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+
+            if (null == mUploadMessage || intent == null || resultCode != RESULT_OK) {
+                return;
+            }
+
+            Uri[] result = null;
+            String dataString = intent.getDataString();
+
+            if (dataString != null) {
+                result = new Uri[]{Uri.parse(dataString)};
+            }
+
+            mUploadMessage.onReceiveValue(result);
+            mUploadMessage = null;
+        } else {
+            super.onActivityResult(requestCode, resultCode, intent);
+        }
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     @SuppressLint("SetJavaScriptEnabled")
@@ -166,19 +189,36 @@ public class WebViewActivity extends AppCompatActivity {
                 }
             }
 
-            // For Lollipop 5.0+ Devices
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//            // For Lollipop 5.0+ Devices
+//            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//            @Override
+//            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback,
+//                    WebChromeClient.FileChooserParams fileChooserParams) {
+//                Intent intent = fileChooserParams.createIntent();
+//                try {
+//                    startActivity(intent);
+//                } catch (ActivityNotFoundException e) {
+//                    Toast.makeText(getApplicationContext(), "Cannot Open File Chooser", Toast.LENGTH_LONG).show();
+//                    return false;
+//                }
+//                return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+//            }
+
             @Override
-            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback,
-                    WebChromeClient.FileChooserParams fileChooserParams) {
-                Intent intent = fileChooserParams.createIntent();
-                try {
-                    startActivity(intent);
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(getApplicationContext(), "Cannot Open File Chooser", Toast.LENGTH_LONG).show();
-                    return false;
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
                 }
-                return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+
+                mUploadMessage = filePathCallback;
+
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType("*/*"); // set MIME type to filter
+
+                WebViewActivity.this.startActivityForResult(Intent.createChooser(i, "File Chooser"), WebViewActivity.FILECHOOSER_RESULTCODE );
+
+                return true;
             }
 
             @Override

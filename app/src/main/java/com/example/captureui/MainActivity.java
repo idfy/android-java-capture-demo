@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
         CustomTabsIntent.Builder customTabsIntentBuilder = new CustomTabsIntent.Builder();
         customTabsIntentBuilder.setShowTitle(false);
-        customTabsIntentBuilder.enableUrlBarHiding();
+        customTabsIntentBuilder.setUrlBarHidingEnabled(true);
         CustomTabsIntent customTabsIntent = customTabsIntentBuilder.build();
         CustomTabActivityHelper.openCustomTab(this, customTabsIntent, Uri.parse(url), new WebViewFallback());
     }
