@@ -189,21 +189,6 @@ public class WebViewActivity extends AppCompatActivity {
                 }
             }
 
-//            // For Lollipop 5.0+ Devices
-//            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-//            @Override
-//            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback,
-//                    WebChromeClient.FileChooserParams fileChooserParams) {
-//                Intent intent = fileChooserParams.createIntent();
-//                try {
-//                    startActivity(intent);
-//                } catch (ActivityNotFoundException e) {
-//                    Toast.makeText(getApplicationContext(), "Cannot Open File Chooser", Toast.LENGTH_LONG).show();
-//                    return false;
-//                }
-//                return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
-//            }
-
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 if (mUploadMessage != null) {
