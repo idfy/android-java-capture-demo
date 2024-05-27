@@ -8,7 +8,9 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -35,7 +37,8 @@ public class WebViewActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "extra.url";
     public static final String STAGING_BASE_URL = "https://capture.kyc.idfystaging.com/";
     public static final String PRODUCTION_BASE_URL = "https://capture.kyc.idfy.com/";
-    private WebView webView;
+    public static final String IDFY_RETOOL_BASE_URL = "https://idfy.retool.com/";
+    private IDfyWebView webView;
 
     /** File chooser attributes */
     private final static int FILECHOOSER_RESULTCODE = 1;
@@ -154,6 +157,74 @@ public class WebViewActivity extends AppCompatActivity {
                         super.onCloseWindow(view);
                         webView.removeView(newWebView);
                     }
+
+                    // Grant permissions for cam
+                    @Override
+                    public void onPermissionRequest(final PermissionRequest request) {
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            request.grant(request.getResources());
+                        }
+                    }
+
+                    @Override
+                    public void onGeolocationPermissionsShowPrompt(final String origin,
+                                                                   final GeolocationPermissions.Callback callback) {
+                        if (ContextCompat.checkSelfPermission(WebViewActivity.this,
+                                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(WebViewActivity.this,
+                                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                                new AlertDialog.Builder(WebViewActivity.this)
+                                        .setMessage("Allow Location Access?")
+                                        .setNeutralButton(R.string.alert_positive_button,
+                                                (dialog, which) -> ActivityCompat.requestPermissions(WebViewActivity.this,
+                                                        new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 111))
+                                        .show();
+                            } else {
+                                ActivityCompat.requestPermissions(WebViewActivity.this,
+                                        new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 111);
+                            }
+                        } else {
+                            callback.invoke(origin, true, true);
+                        }
+                    }
+
+//                    // For Lollipop 5.0+ Devices
+//                    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//                    @Override
+//                    public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback,
+//                            WebChromeClient.FileChooserParams fileChooserParams) {
+//                        Intent intent = fileChooserParams.createIntent();
+//                        try {
+//                            startActivity(intent);
+//                        } catch (ActivityNotFoundException e) {
+//                            Toast.makeText(getApplicationContext(), "Cannot Open File Chooser", Toast.LENGTH_LONG).show();
+//                            return false;
+//                        }
+//                        return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+//                    }
+
+                    @Override
+                    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                        if (mUploadMessage != null) {
+                            mUploadMessage.onReceiveValue(null);
+                        }
+
+                        mUploadMessage = filePathCallback;
+
+                        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                        i.addCategory(Intent.CATEGORY_OPENABLE);
+                        i.setType("*/*"); // set MIME type to filter
+
+                        WebViewActivity.this.startActivityForResult(Intent.createChooser(i, "File Chooser"), WebViewActivity.FILECHOOSER_RESULTCODE );
+
+                        return true;
+                    }
+
+                    @Override
+                    public Bitmap getDefaultVideoPoster() {
+                        return Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+                    }
                 });
                 return true;
             }
@@ -216,14 +287,35 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void onPageStarted(WebView a_webview, String a_url, Bitmap favIcon) {
                 super.onPageStarted(a_webview, a_url, favIcon);
-                if (!a_url.contains(STAGING_BASE_URL) && !a_url.contains((PRODUCTION_BASE_URL))) {
-                    finish();
-                }
+//                if (!a_url.contains(STAGING_BASE_URL) && !a_url.contains((PRODUCTION_BASE_URL) && !a_url.contains(IDFY_RETOOL_BASE_URL))) {
+//                    finish();
+//                }
             }
 
             @Override
             public void onPageFinished(WebView a_webview, String a_url) {
                 super.onPageFinished(a_webview, a_url);
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (Uri.parse(url).getHost().contains("play.google.com")) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        Activity activity = (Activity) view.getContext();
+                        activity.startActivity(intent);
+                        return true;
+                    } catch (ActivityNotFoundException e)
+                    {
+                        // Google Play app is not installed, you may want to open the app store link
+                        // Link will open your browser
+                        view.loadUrl(url);
+                        return false;
+                    }
+
+                }
+                return false;
             }
         });
     }
