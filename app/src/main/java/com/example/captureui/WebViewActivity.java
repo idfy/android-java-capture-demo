@@ -88,6 +88,7 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setSupportMultipleWindows(true);
+        webView.addJavascriptInterface(new WebAppInterface(this), "IDfyWebview");
 
         // if SDK version is greater of 19 then activate hardware acceleration otherwise
         // activate software acceleration
